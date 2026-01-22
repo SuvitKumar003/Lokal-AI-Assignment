@@ -18,6 +18,8 @@ import SearchScreen from '../screens/SearchScreen';
 import PlayerScreen from '../screens/PlayerScreen';
 import ArtistDetailScreen from '../screens/ArtistDetailScreen';
 import AlbumDetailScreen from '../screens/AlbumDetailScreen';
+import QueueScreen from '../screens/QueueScreen';
+import DownloadsScreen from '../screens/DownloadsScreen';
 
 // Components
 import MiniPlayer from '../components/player/MiniPlayer';
@@ -110,6 +112,8 @@ export default function AppNavigator() {
         <Stack.Screen name="Search" component={SearchScreen} />
         <Stack.Screen name="ArtistDetail" component={ArtistDetailScreen} />
         <Stack.Screen name="AlbumDetail" component={AlbumDetailScreen} />
+        <Stack.Screen name="Queue" component={QueueScreen} />
+        <Stack.Screen name="Downloads" component={DownloadsScreen} />
       </Stack.Navigator>
       <MiniPlayer />
     </NavigationContainer>

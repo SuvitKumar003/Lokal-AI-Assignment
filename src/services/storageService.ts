@@ -3,8 +3,10 @@ import { Song } from '../types';
 
 const KEYS = {
   QUEUE: 'queue',
+  CURRENT_INDEX: 'current_index',
   RECENTLY_PLAYED: 'recently_played',
   FAVORITES: 'favorites',
+  DOWNLOADED_SONGS: 'downloaded_songs',
   THEME: 'theme',
 };
 
@@ -17,6 +19,16 @@ export const storageService = {
   getQueue: async (): Promise<Song[]> => {
     const queue = await AsyncStorage.getItem(KEYS.QUEUE);
     return queue ? JSON.parse(queue) : [];
+  },
+
+  // Current Index
+  saveCurrentIndex: async (index: number) => {
+    await AsyncStorage.setItem(KEYS.CURRENT_INDEX, JSON.stringify(index));
+  },
+
+  getCurrentIndex: async (): Promise<number> => {
+    const index = await AsyncStorage.getItem(KEYS.CURRENT_INDEX);
+    return index ? JSON.parse(index) : 0;
   },
 
   // Recently Played
@@ -67,5 +79,28 @@ export const storageService = {
   getTheme: async (): Promise<boolean> => {
     const theme = await AsyncStorage.getItem(KEYS.THEME);
     return theme ? JSON.parse(theme) : false;
+  },
+
+  // Downloaded Songs
+  addDownloadedSong: async (song: Song) => {
+    let downloaded = await storageService.getDownloadedSongs();
+    downloaded = downloaded.filter(s => s.id !== song.id);
+    downloaded.unshift(song);
+    await AsyncStorage.setItem(KEYS.DOWNLOADED_SONGS, JSON.stringify(downloaded));
+  },
+
+  removeDownloadedSong: async (songId: string) => {
+    let downloaded = await storageService.getDownloadedSongs();
+    downloaded = downloaded.filter(s => s.id !== songId);
+    await AsyncStorage.setItem(KEYS.DOWNLOADED_SONGS, JSON.stringify(downloaded));
+  },
+
+  getDownloadedSongs: async (): Promise<Song[]> => {
+    const downloaded = await AsyncStorage.getItem(KEYS.DOWNLOADED_SONGS);
+    return downloaded ? JSON.parse(downloaded) : [];
+  },
+
+  clearDownloadedSongs: async () => {
+    await AsyncStorage.setItem(KEYS.DOWNLOADED_SONGS, JSON.stringify([]));
   },
 };

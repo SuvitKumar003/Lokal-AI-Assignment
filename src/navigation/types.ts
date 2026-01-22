@@ -8,6 +8,8 @@ export type RootStackParamList = {
   ArtistDetail: { artistId: string; artistName: string };
   AlbumDetail: { albumId: string; albumName: string };
   Search: undefined;
+  Queue: undefined;
+  Downloads: undefined;
 };
 
 export type TabParamList = {

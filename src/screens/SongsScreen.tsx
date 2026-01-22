@@ -34,14 +34,19 @@ interface SortOption {
   icon: string;
 }
 
+const ITEMS_PER_PAGE = 20;
+
 export default function SongsScreen() {
   const navigation = useNavigation<NavigationProp>();
   const { isDark } = useThemeStore();
   const colors = isDark ? Colors.dark : Colors.light;
   const { playSong, currentSong, isPlaying } = usePlayerStore();
 
-  const [songs, setSongs] = useState<Song[]>([]);
+  const [allSongs, setAllSongs] = useState<Song[]>([]);
+  const [displayedSongs, setDisplayedSongs] = useState<Song[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
   const [showSortModal, setShowSortModal] = useState(false);
@@ -54,7 +59,7 @@ export default function SongsScreen() {
   ];
 
   const sortedSongs = useMemo(() => {
-    return [...songs].sort((a, b) => {
+    return [...allSongs].sort((a, b) => {
       let aValue: string | number = '';
       let bValue: string | number = '';
 
@@ -84,17 +89,24 @@ export default function SongsScreen() {
       const comparison = aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
       return sortOrder === 'asc' ? comparison : -comparison;
     });
-  }, [songs, sortField, sortOrder]);
+  }, [allSongs, sortField, sortOrder]);
 
   useEffect(() => {
     loadSongs();
   }, []);
 
+  useEffect(() => {
+    // Update displayed songs when sorted songs change
+    const paginated = sortedSongs.slice(0, currentPage * ITEMS_PER_PAGE);
+    setDisplayedSongs(paginated);
+  }, [sortedSongs, currentPage]);
+
   const loadSongs = async () => {
     try {
       // Load popular songs
       const results = await saavnAPI.searchSongs('latest hindi songs');
-      setSongs(results);
+      setAllSongs(results);
+      setDisplayedSongs(results.slice(0, ITEMS_PER_PAGE));
     } catch (error) {
       console.error('Error loading songs:', error);
     } finally {
@@ -102,8 +114,33 @@ export default function SongsScreen() {
     }
   };
 
+  const loadMore = () => {
+    if (loadingMore || displayedSongs.length >= sortedSongs.length) return;
+
+    setLoadingMore(true);
+    setTimeout(() => {
+      const nextPage = currentPage + 1;
+      const newSongs = sortedSongs.slice(0, nextPage * ITEMS_PER_PAGE);
+      setDisplayedSongs(newSongs);
+      setCurrentPage(nextPage);
+      setLoadingMore(false);
+    }, 500);
+  };
+
   const handleSongPress = (song: Song, index: number) => {
-    playSong(song, songs, index);
+    playSong(song, sortedSongs, index);
+  };
+
+  const renderFooter = () => {
+    if (!loadingMore) return null;
+    return (
+      <View style={styles.footerLoader}>
+        <ActivityIndicator size="small" color={colors.primary} />
+        <Text style={[styles.footerText, { color: colors.textSecondary }]}>
+          Loading more...
+        </Text>
+      </View>
+    );
   };
 
   const renderSongItem = ({ item, index }: { item: Song; index: number }) => {
@@ -155,7 +192,9 @@ export default function SongsScreen() {
       <CustomTabBar />
 
       <View style={styles.subHeader}>
-        <Text style={[styles.songCount, { color: colors.textSecondary }]}>{songs.length} songs</Text>
+        <Text style={[styles.songCount, { color: colors.textSecondary }]}>
+          {displayedSongs.length} of {sortedSongs.length} songs
+        </Text>
         <TouchableOpacity style={styles.sortButton} onPress={() => setShowSortModal(true)}>
           <Ionicons name="swap-vertical" size={16} color={colors.textSecondary} />
           <Text style={[styles.sortText, { color: colors.textSecondary }]}>
@@ -165,11 +204,14 @@ export default function SongsScreen() {
       </View>
 
       <FlatList
-        data={sortedSongs}
+        data={displayedSongs}
         renderItem={renderSongItem}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={renderFooter}
       />
 
       {/* Sort Modal */}
@@ -278,6 +320,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: 20,
+    paddingBottom: 100,
   },
   songItem: {
     flexDirection: 'row',
@@ -300,6 +343,14 @@ const styles = StyleSheet.create({
   },
   artistName: {
     fontSize: 14,
+  },
+  footerLoader: {
+    paddingVertical: 20,
+    alignItems: 'center',
+    gap: 8,
+  },
+  footerText: {
+    fontSize: 12,
   },
   modalOverlay: {
     flex: 1,

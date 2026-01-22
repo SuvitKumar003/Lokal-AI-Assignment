@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { Song, RepeatMode } from '../types';
 import { audioService } from '../services/audioService';
+import { notificationService } from '../services/notificationService';
+import { downloadService } from '../services/downloadService';
 import { useQueueStore } from './queueStore';
 import { storageService } from '../services/storageService';
 import { getDownloadUrl, shuffleArray } from '../utils/helpers';
@@ -48,19 +50,24 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
     try {
       set({ isLoading: true });
 
-      // Initialize audio service
+      // Initialize services
       await audioService.initialize();
+      await notificationService.initialize();
 
       // Set queue if provided
       if (queue && queue.length > 0) {
         useQueueStore.getState().setQueue(queue, startIndex);
       } else {
-        // If no queue provided, create a single-song queue
         useQueueStore.getState().setQueue([song], 0);
       }
 
-      // Get audio URL
-      const audioUrl = getDownloadUrl(song.downloadUrl, '320kbps');
+      // Get audio URL - prefer local file if downloaded
+      let audioUrl = await downloadService.getLocalUri(song.id);
+      
+      if (!audioUrl) {
+        // Fallback to streaming
+        audioUrl = getDownloadUrl(song.downloadUrl, '320kbps');
+      }
       
       if (!audioUrl) {
         console.error('No audio URL found');
@@ -85,6 +92,9 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
         position: 0,
       });
 
+      // Show notification
+      await notificationService.showPlayingNotification(song, true);
+
       // Add to recently played
       storageService.addToRecentlyPlayed(song);
     } catch (error) {
@@ -102,9 +112,11 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
       if (isPlaying) {
         await audioService.pause();
         set({ isPlaying: false });
+        await notificationService.showPlayingNotification(currentSong, false);
       } else {
         await audioService.play();
         set({ isPlaying: true });
+        await notificationService.showPlayingNotification(currentSong, true);
       }
     } catch (error) {
       console.error('Error toggling play/pause:', error);
@@ -131,6 +143,7 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
       } else {
         // Stop playback
         await audioService.stop();
+        await notificationService.clearNotification();
         set({ isPlaying: false, position: 0 });
         return;
       }
@@ -194,10 +207,13 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
 
   toggleShuffle: () => {
     const { isShuffled } = get();
-    const { queue, currentIndex, setQueue } = useQueueStore.getState();
+    const { queue, currentIndex, setQueue, saveOriginalQueue, restoreOriginalQueue } = useQueueStore.getState();
     const currentSong = queue[currentIndex];
 
     if (!isShuffled) {
+      // Save original order before shuffling
+      saveOriginalQueue();
+      
       // Enable shuffle
       const remainingSongs = queue.slice(currentIndex + 1);
       const shuffled = shuffleArray(remainingSongs);
@@ -205,8 +221,8 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
       setQueue(newQueue, 0);
       set({ isShuffled: true });
     } else {
-      // Disable shuffle - would need to restore original order
-      // For now, just toggle the flag
+      // Restore original queue order
+      restoreOriginalQueue();
       set({ isShuffled: false });
     }
   },

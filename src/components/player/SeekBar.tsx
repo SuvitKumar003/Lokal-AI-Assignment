@@ -1,35 +1,54 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import Slider from '@react-native-community/slider';
 import { usePlayerStore } from '../../store/playerStore';
 import { useThemeStore } from '../../store/themeStore';
 import { Colors } from '../../constants/colors';
 import { formatDuration } from '../../utils/formatTime';
 
-const { width } = Dimensions.get('window');
-
 export default function SeekBar() {
   const { isDark } = useThemeStore();
   const colors = isDark ? Colors.dark : Colors.light;
-  const { position, duration } = usePlayerStore();
+  const { position, duration, seekTo } = usePlayerStore();
+  const [isSeeking, setIsSeeking] = useState(false);
+  const [seekPosition, setSeekPosition] = useState(0);
 
-  const progress = duration > 0 ? position / duration : 0;
+  const handleSlidingStart = () => {
+    setIsSeeking(true);
+  };
+
+  const handleValueChange = (value: number) => {
+    setSeekPosition(value);
+  };
+
+  const handleSlidingComplete = async (value: number) => {
+    await seekTo(value);
+    setIsSeeking(false);
+  };
+
+  const displayPosition = isSeeking ? seekPosition : position;
 
   return (
     <View style={styles.container}>
       <Text style={[styles.timeText, { color: colors.textSecondary }]}>
-        {formatDuration(position)}
+        {formatDuration(Math.floor(displayPosition / 1000))}
       </Text>
-      <View style={styles.progressContainer}>
-        <View
-          style={[
-            styles.progressBar,
-            { backgroundColor: colors.textSecondary, width: (width - 120) * progress },
-          ]}
-        />
-        <View style={[styles.track, { backgroundColor: colors.border }]} />
-      </View>
+      
+      <Slider
+        style={styles.slider}
+        value={displayPosition}
+        minimumValue={0}
+        maximumValue={duration || 1}
+        minimumTrackTintColor={colors.primary}
+        maximumTrackTintColor={colors.border}
+        thumbTintColor={colors.primary}
+        onSlidingStart={handleSlidingStart}
+        onValueChange={handleValueChange}
+        onSlidingComplete={handleSlidingComplete}
+      />
+      
       <Text style={[styles.timeText, { color: colors.textSecondary }]}>
-        {formatDuration(duration)}
+        {formatDuration(Math.floor(duration / 1000))}
       </Text>
     </View>
   );
@@ -42,23 +61,9 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     paddingHorizontal: 20,
   },
-  progressContainer: {
+  slider: {
     flex: 1,
-    height: 4,
     marginHorizontal: 12,
-    position: 'relative',
-  },
-  track: {
-    position: 'absolute',
-    height: 4,
-    width: '100%',
-    borderRadius: 2,
-  },
-  progressBar: {
-    position: 'absolute',
-    height: 4,
-    borderRadius: 2,
-    zIndex: 1,
   },
   timeText: {
     fontSize: 12,
