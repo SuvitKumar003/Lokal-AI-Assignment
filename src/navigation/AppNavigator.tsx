@@ -1,28 +1,28 @@
-import React from 'react';
-import { StyleSheet, View } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Ionicons } from '@expo/vector-icons';
-import { useThemeStore } from '../store/themeStore';
-import { Colors } from '../constants/colors';
-import { RootStackParamList, TabParamList } from './types';
+import { View } from "react-native";
+import React from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { Ionicons } from "@expo/vector-icons";
+import { useThemeStore } from "../store/themeStore";
+import { Colors } from "../constants/colors";
+import { RootStackParamList, TabParamList } from "./types";
 
 // Screens
-import HomeScreen from '../screens/HomeScreen';
-import SongsScreen from '../screens/SongsScreen';
-import ArtistsScreen from '../screens/ArtistsScreen';
-import AlbumsScreen from '../screens/AlbumsScreen';
-import SettingsScreen from '../screens/SettingsScreen';
-import SearchScreen from '../screens/SearchScreen';
-import PlayerScreen from '../screens/PlayerScreen';
-import ArtistDetailScreen from '../screens/ArtistDetailScreen';
-import AlbumDetailScreen from '../screens/AlbumDetailScreen';
-import QueueScreen from '../screens/QueueScreen';
-import DownloadsScreen from '../screens/DownloadsScreen';
+import HomeScreen from "../screens/HomeScreen";
+import SongsScreen from "../screens/SongsScreen";
+import ArtistsScreen from "../screens/ArtistsScreen";
+import AlbumsScreen from "../screens/AlbumsScreen";
+import SettingsScreen from "../screens/SettingsScreen";
+import SearchScreen from "../screens/SearchScreen";
+import PlayerScreen from "../screens/PlayerScreen";
+import ArtistDetailScreen from "../screens/ArtistDetailScreen";
+import AlbumDetailScreen from "../screens/AlbumDetailScreen";
+import QueueScreen from "../screens/QueueScreen";
+import DownloadsScreen from "../screens/DownloadsScreen";
 
 // Components
-import MiniPlayer from '../components/player/MiniPlayer';
+import MiniPlayer from "../components/player/MiniPlayer";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
@@ -35,7 +35,7 @@ function TabNavigator() {
     <Tab.Navigator
       screenOptions={{
         tabBarStyle: {
-          display: 'none', // Hide the default tab bar
+          display: "none",
         },
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.tabBarInactive,
@@ -46,7 +46,7 @@ function TabNavigator() {
         name="Home"
         component={HomeScreen}
         options={{
-          tabBarLabel: 'Home',
+          tabBarLabel: "Home",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home" size={size} color={color} />
           ),
@@ -56,7 +56,7 @@ function TabNavigator() {
         name="Songs"
         component={SongsScreen}
         options={{
-          tabBarLabel: 'Songs',
+          tabBarLabel: "Songs",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="musical-notes" size={size} color={color} />
           ),
@@ -66,7 +66,7 @@ function TabNavigator() {
         name="Artists"
         component={ArtistsScreen}
         options={{
-          tabBarLabel: 'Artists',
+          tabBarLabel: "Artists",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="people" size={size} color={color} />
           ),
@@ -76,7 +76,7 @@ function TabNavigator() {
         name="Albums"
         component={AlbumsScreen}
         options={{
-          tabBarLabel: 'Albums',
+          tabBarLabel: "Albums",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="disc" size={size} color={color} />
           ),
@@ -86,7 +86,7 @@ function TabNavigator() {
         name="Settings"
         component={SettingsScreen}
         options={{
-          tabBarLabel: 'Settings',
+          tabBarLabel: "Settings",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="settings" size={size} color={color} />
           ),
@@ -102,20 +102,22 @@ export default function AppNavigator() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator
-        screenOptions={{
-          headerShown: false,
-        }}
-      >
-        <Stack.Screen name="MainTabs" component={TabNavigator} />
-        <Stack.Screen name="Player" component={PlayerScreen} />
-        <Stack.Screen name="Search" component={SearchScreen} />
-        <Stack.Screen name="ArtistDetail" component={ArtistDetailScreen} />
-        <Stack.Screen name="AlbumDetail" component={AlbumDetailScreen} />
-        <Stack.Screen name="Queue" component={QueueScreen} />
-        <Stack.Screen name="Downloads" component={DownloadsScreen} />
-      </Stack.Navigator>
-      <MiniPlayer />
+      <View style={{ flex: 1 }}>
+        <Stack.Navigator
+          screenOptions={{
+            headerShown: false,
+          }}
+        >
+          <Stack.Screen name="MainTabs" component={TabNavigator} />
+          <Stack.Screen name="Player" component={PlayerScreen} />
+          <Stack.Screen name="Search" component={SearchScreen} />
+          <Stack.Screen name="ArtistDetail" component={ArtistDetailScreen} />
+          <Stack.Screen name="AlbumDetail" component={AlbumDetailScreen} />
+          <Stack.Screen name="Queue" component={QueueScreen} />
+          <Stack.Screen name="Downloads" component={DownloadsScreen} />
+        </Stack.Navigator>
+        <MiniPlayer />
+      </View>
     </NavigationContainer>
   );
 }

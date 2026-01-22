@@ -17,7 +17,6 @@ import { Colors } from '../constants/colors';
 import { saavnAPI } from '../api/saavn';
 import { Song } from '../types';
 import { getImageUrl, extractArtistNames } from '../utils/helpers';
-import { TabScreenProps } from '../navigation/types';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
@@ -96,14 +95,12 @@ export default function SongsScreen() {
   }, []);
 
   useEffect(() => {
-    // Update displayed songs when sorted songs change
     const paginated = sortedSongs.slice(0, currentPage * ITEMS_PER_PAGE);
     setDisplayedSongs(paginated);
   }, [sortedSongs, currentPage]);
 
   const loadSongs = async () => {
     try {
-      // Load popular songs
       const results = await saavnAPI.searchSongs('latest hindi songs');
       setAllSongs(results);
       setDisplayedSongs(results.slice(0, ITEMS_PER_PAGE));
@@ -225,7 +222,6 @@ export default function SongsScreen() {
           <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
             <Text style={[styles.modalTitle, { color: colors.text }]}>Sort Songs</Text>
             
-            {/* Sort Field Options */}
             <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>Sort by</Text>
             {sortOptions.map((option) => (
               <TouchableOpacity
@@ -243,7 +239,6 @@ export default function SongsScreen() {
               </TouchableOpacity>
             ))}
 
-            {/* Sort Order Options */}
             <Text style={[styles.sectionLabel, { color: colors.textSecondary, marginTop: 20 }]}>Order</Text>
             <View style={styles.orderOptions}>
               <TouchableOpacity
@@ -320,12 +315,15 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: 20,
-    paddingBottom: 100,
+    paddingBottom: 84, // 64px mini player + 20px spacing
   },
   songItem: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 12,
+    paddingHorizontal: 12,
+    marginBottom: 8,
+    borderRadius: 8,
     gap: 12,
   },
   thumbnail: {

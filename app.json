@@ -4,13 +4,7 @@
     "slug": "music-player",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#FF6B00"
-    },
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -22,10 +16,6 @@
       }
     },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#FF6B00"
-      },
       "package": "com.yourcompany.musicplayer",
       "permissions": [
         "android.permission.INTERNET",
@@ -33,9 +23,6 @@
         "android.permission.WAKE_LOCK",
         "android.permission.POST_NOTIFICATIONS"
       ]
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
     },
     "plugins": [
       [
@@ -47,7 +34,6 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/icon.png",
           "color": "#FF6B00"
         }
       ]

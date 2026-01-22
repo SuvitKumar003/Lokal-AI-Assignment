@@ -22,7 +22,7 @@ export default function App() {
     // Initialize services
     audioService.initialize();
     notificationService.initialize();
-  }, [initializeTheme, initializeQueue, initializeDownloads]);
+  }, []);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

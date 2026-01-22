@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList, TabScreenProps } from '../navigation/types';
+import { RootStackParamList } from '../navigation/types';
 import { useThemeStore } from '../store/themeStore';
 import { usePlayerStore } from '../store/playerStore';
 import { Colors } from '../constants/colors';
@@ -52,57 +52,26 @@ export default function HomeScreen() {
 
       // Load popular artists
       let artists = await saavnAPI.searchArtists('arijit');
-      if (artists.length === 0) {
-        // Fallback mock data if API fails
-        artists = [
-          {
-            id: '1',
-            name: 'Arijit Singh',
-            image: [{ quality: '500x500', link: 'https://via.placeholder.com/70x70/666666/ffffff?text=Arijit' }],
-            followerCount: '1000000'
-          },
-          {
-            id: '2', 
-            name: 'Neha Kakkar',
-            image: [{ quality: '500x500', link: 'https://via.placeholder.com/70x70/666666/ffffff?text=Neha' }],
-            followerCount: '800000'
-          },
-          {
-            id: '3',
-            name: 'Badshah',
-            image: [{ quality: '500x500', link: 'https://via.placeholder.com/70x70/666666/ffffff?text=Badshah' }],
-            followerCount: '600000'
-          }
-        ];
-      }
-      console.log('Loaded artists:', artists.length, 'artists');
-      if (artists.length > 0) {
-        console.log('First artist:', artists[0]);
-      }
- // 1️⃣ Remove combined artists (& ,)
-const singleArtists = artists.filter(
-  (artist) =>
-    !artist.name.includes('&') &&
-    !artist.name.includes(',')
-);
+      
+      // Remove combined artists (& ,)
+      const singleArtists = artists.filter(
+        (artist) =>
+          !artist.name.includes('&') &&
+          !artist.name.includes(',')
+      );
 
-// 2️⃣ Remove duplicate artists (same name)
-const uniqueArtistsMap = new Map<string, Artist>();
+      // Remove duplicate artists (same name)
+      const uniqueArtistsMap = new Map<string, Artist>();
 
-singleArtists.forEach((artist) => {
-  const key = artist.name.trim().toLowerCase();
+      singleArtists.forEach((artist) => {
+        const key = artist.name.trim().toLowerCase();
+        if (!uniqueArtistsMap.has(key)) {
+          uniqueArtistsMap.set(key, artist);
+        }
+      });
 
-  if (!uniqueArtistsMap.has(key)) {
-    uniqueArtistsMap.set(key, artist);
-  }
-});
-
-// 3️⃣ Convert map to array
-const uniqueArtists = Array.from(uniqueArtistsMap.values());
-
-// 4️⃣ Set final artists list
-setTopArtists(uniqueArtists.slice(0, 10));
-
+      const uniqueArtists = Array.from(uniqueArtistsMap.values());
+      setTopArtists(uniqueArtists.slice(0, 10));
 
     } catch (error) {
       console.error('Error loading home data:', error);
@@ -146,7 +115,7 @@ setTopArtists(uniqueArtists.slice(0, 10));
 
   const renderArtistItem = ({ item }: { item: Artist }) => {
     const imageUrl = getImageUrl(item.image);
-    const finalImageUrl = imageUrl || 'https://via.placeholder.com/70x70/666666/ffffff?text=Artist';
+    const finalImageUrl = imageUrl || 'https://via.placeholder.com/90x90/666666/ffffff?text=Artist';
     
     return (
       <TouchableOpacity
@@ -177,7 +146,10 @@ setTopArtists(uniqueArtists.slice(0, 10));
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
         <View style={styles.header}>
           <Text style={[styles.headerTitle, { color: colors.text }]}>🎵 Mume</Text>
           <TouchableOpacity onPress={() => navigation.navigate('Search')}>
@@ -192,7 +164,7 @@ setTopArtists(uniqueArtists.slice(0, 10));
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={[styles.sectionTitle, { color: colors.text }]}>Recently Played</Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Songs' as any)}>
+              <TouchableOpacity onPress={() => navigation.navigate('MainTabs', { screen: 'Songs' } as any)}>
                 <Text style={[styles.seeAll, { color: colors.primary }]}>See All</Text>
               </TouchableOpacity>
             </View>
@@ -212,7 +184,7 @@ setTopArtists(uniqueArtists.slice(0, 10));
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={[styles.sectionTitle, { color: colors.text }]}>Top Artists</Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Artists' as any)}>
+              <TouchableOpacity onPress={() => navigation.navigate('MainTabs', { screen: 'Artists' } as any)}>
                 <Text style={[styles.seeAll, { color: colors.primary }]}>See All</Text>
               </TouchableOpacity>
             </View>
@@ -232,7 +204,7 @@ setTopArtists(uniqueArtists.slice(0, 10));
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={[styles.sectionTitle, { color: colors.text }]}>Most Played</Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Songs' as any)}>
+              <TouchableOpacity onPress={() => navigation.navigate('MainTabs', { screen: 'Songs' } as any)}>
                 <Text style={[styles.seeAll, { color: colors.primary }]}>See All</Text>
               </TouchableOpacity>
             </View>
@@ -254,6 +226,9 @@ setTopArtists(uniqueArtists.slice(0, 10));
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 84, // 64px mini player + 20px spacing
   },
   loadingContainer: {
     flex: 1,
@@ -297,6 +272,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     overflow: 'hidden',
     padding: 12,
+    marginRight: 12,
   },
   songImage: {
     width: '100%',
@@ -315,21 +291,20 @@ const styles = StyleSheet.create({
   songArtist: {
     fontSize: 12,
   },
-artistCard: {
-  alignItems: 'center',
-  width: 100,
-  marginRight: 20,
-},
-artistImage: {
-  width: 90,
-  height: 90,
-  borderRadius: 45,
-  marginBottom: 10,
-},
-artistName: {
-  fontSize: 14,
-  fontWeight: '600',
-  textAlign: 'center',
-},
-
+  artistCard: {
+    alignItems: 'center',
+    width: 100,
+    marginRight: 20,
+  },
+  artistImage: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    marginBottom: 10,
+  },
+  artistName: {
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
 });
